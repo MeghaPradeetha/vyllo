@@ -9,6 +9,7 @@ export async function createUserProfile(
   userId: string,
   data: Omit<UserProfile, 'userId' | 'createdAt' | 'portfolioUrl'>
 ): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
   const userRef = doc(db, 'users', userId, 'profile', 'public')
   
   const profileData: UserProfile = {
@@ -28,6 +29,7 @@ export async function createUserProfile(
  * Get user profile by userId
  */
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+  if (!db) throw new Error('Firestore not initialized')
   const userRef = doc(db, 'users', userId, 'profile', 'public')
   const userSnap = await getDoc(userRef)
   
@@ -51,6 +53,7 @@ export async function getUserProfileByUsername(username: string): Promise<UserPr
   // In production, consider using a separate username -> userId mapping collection
   const { collection, query, where, getDocs } = await import('firebase/firestore')
   
+  if (!db) throw new Error('Firestore not initialized')
   const usersRef = collection(db, 'users')
   const q = query(
     collection(db, 'users'),
@@ -69,6 +72,7 @@ export async function updateUserProfile(
   userId: string,
   data: Partial<Omit<UserProfile, 'userId' | 'createdAt' | 'portfolioUrl'>>
 ): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
   const userRef = doc(db, 'users', userId, 'profile', 'public')
   await updateDoc(userRef, data)
 }

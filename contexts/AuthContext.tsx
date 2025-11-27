@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth'
 import { auth, isConfigured } from '@/lib/firebase'
 import { UserProfile } from '@/types/database'
-import { getUserProfile, createUserProfile } from '@/lib/db/users'
+import { getUserProfile, createUserProfile, updateUserProfile } from '@/lib/db/users'
 
 interface AuthContextType {
   user: User | null
@@ -90,6 +90,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         bio: '',
         avatar: userCredential.user.photoURL || '',
       })
+    } else if (userCredential.user.photoURL) {
+      // Check if we should update the avatar
+      // Update if:
+      // 1. Current avatar is empty/null
+      // 2. Current avatar is the default placeholder (if we had one, but we don't seem to have a specific URL for it yet)
+      // 3. OR just always update it on Google Sign In? 
+      // Let's stick to: if empty or if it looks like a previous google avatar (which is hard to tell without storing it)
+      // For now, let's be more aggressive: If they sign in with Google, and they don't have a CUSTOM uploaded avatar (how to tell?), we sync.
+      // Since we can't easily distinguish, let's just sync if it's different? No, that might overwrite custom uploads.
+      // Let's stick to "if empty" but ensure we handle "undefined" correctly.
+      
+      if (!existingProfile.avatar) {
+         await updateUserProfile(userCredential.user.uid, {
+          avatar: userCredential.user.photoURL
+        })
+        setUserProfile(prev => prev ? { ...prev, avatar: userCredential.user.photoURL! } : null)
+      }
     }
   }
 

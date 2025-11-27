@@ -10,6 +10,7 @@ export async function saveConnection(
   platform: Platform,
   data: Omit<PlatformConnection, 'platform'>
 ): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
   const connectionRef = doc(db, 'users', userId, 'connections', platform)
   
   await setDoc(connectionRef, {
@@ -26,6 +27,7 @@ export async function getConnection(
   userId: string,
   platform: Platform
 ): Promise<PlatformConnection | null> {
+  if (!db) throw new Error('Firestore not initialized')
   const connectionRef = doc(db, 'users', userId, 'connections', platform)
   const connectionSnap = await getDoc(connectionRef)
   
@@ -45,6 +47,7 @@ export async function getConnection(
  * Get all connections for a user
  */
 export async function getConnections(userId: string): Promise<Record<Platform, PlatformConnection | null>> {
+  if (!db) throw new Error('Firestore not initialized')
   const connectionsRef = collection(db, 'users', userId, 'connections')
   const snapshot = await getDocs(connectionsRef)
   
@@ -73,6 +76,7 @@ export async function deleteConnection(
   userId: string,
   platform: Platform
 ): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
   const connectionRef = doc(db, 'users', userId, 'connections', platform)
   await deleteDoc(connectionRef)
 }
@@ -84,6 +88,7 @@ export async function updateLastSynced(
   userId: string,
   platform: Platform
 ): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
   const connectionRef = doc(db, 'users', userId, 'connections', platform)
   await setDoc(connectionRef, {
     lastSynced: new Date(),

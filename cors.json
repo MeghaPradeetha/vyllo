@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:3000", "https://vyllo-bb8ed.web.app", "https://vyllo-bb8ed.firebaseapp.com"],
+    "method": ["GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "x-goog-resumable"],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -18,6 +18,7 @@ import { ContentItem } from '@/types/database'
  * Uses batch write for efficiency
  */
 export async function saveContent(contentItems: ContentItem[]): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
   const batch = writeBatch(db)
   const contentRef = collection(db, 'public', 'data', 'contentCache')
   
@@ -36,6 +37,7 @@ export async function saveContent(contentItems: ContentItem[]): Promise<void> {
  * Get all content for a specific user
  */
 export async function getContentByUser(userId: string): Promise<ContentItem[]> {
+  if (!db) throw new Error('Firestore not initialized')
   const contentRef = collection(db, 'public', 'data', 'contentCache')
   const q = query(
     contentRef,
@@ -65,6 +67,7 @@ export async function getContentByUserAndType(
   userId: string,
   type: 'video' | 'short' | 'post'
 ): Promise<ContentItem[]> {
+  if (!db) throw new Error('Firestore not initialized')
   const contentRef = collection(db, 'public', 'data', 'contentCache')
   const q = query(
     contentRef,
@@ -91,6 +94,7 @@ export async function getContentByUserAndType(
  * Delete all content for a user
  */
 export async function deleteUserContent(userId: string): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
   const contentRef = collection(db, 'public', 'data', 'contentCache')
   const q = query(contentRef, where('creatorId', '==', userId))
   
@@ -108,6 +112,7 @@ export async function deleteUserContent(userId: string): Promise<void> {
  * Get recent content across all users (for homepage/discovery)
  */
 export async function getRecentContent(limitCount: number = 20): Promise<ContentItem[]> {
+  if (!db) throw new Error('Firestore not initialized')
   const contentRef = collection(db, 'public', 'data', 'contentCache')
   const q = query(
     contentRef,
