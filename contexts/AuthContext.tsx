@@ -42,7 +42,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (user) {
         // Fetch user profile
-        const profile = await getUserProfile(user.uid)
+        let profile = await getUserProfile(user.uid)
+        
+        // Sync Google photoURL if profile avatar is missing
+        if (profile && !profile.avatar && user.photoURL) {
+          console.log('Syncing missing avatar from Google profile...')
+          await updateUserProfile(user.uid, {
+            avatar: user.photoURL
+          })
+          // Update local state immediately
+          profile = { ...profile, avatar: user.photoURL }
+        }
+        
         setUserProfile(profile)
       } else {
         setUserProfile(null)

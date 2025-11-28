@@ -16,10 +16,13 @@ export async function uploadAvatarAction(formData: FormData, idToken: string) {
 
     // Verify the ID token to ensure the user is authenticated
     try {
+      console.log('Verifying ID token...')
       const decodedToken = await adminAuth.verifyIdToken(idToken)
       if (decodedToken.uid !== userId) {
+        console.error('User ID mismatch')
         return { error: 'Unauthorized: User ID mismatch' }
       }
+      console.log('ID token verified successfully')
     } catch (error) {
       console.error('Error verifying ID token:', error)
       return { error: 'Unauthorized: Invalid token' }
@@ -27,6 +30,7 @@ export async function uploadAvatarAction(formData: FormData, idToken: string) {
 
     // Get the storage bucket
     const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    console.log('Using storage bucket:', bucketName)
     if (!bucketName) {
       return { error: 'Server configuration error: Storage bucket not defined' }
     }
@@ -35,22 +39,26 @@ export async function uploadAvatarAction(formData: FormData, idToken: string) {
     const fileExtension = file.name.split('.').pop() || 'jpg'
     const fileName = `avatars/${userId}/avatar.${fileExtension}`
     const fileRef = bucket.file(fileName)
+    console.log('File reference created:', fileName)
 
     // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+    console.log('File buffer created, size:', buffer.length)
 
     // Upload the file
+    console.log('Saving file to bucket...')
     await fileRef.save(buffer, {
       metadata: {
         contentType: file.type,
       },
     })
+    console.log('File saved successfully')
 
-    // Make the file public (optional, or generate a signed URL)
-    // For avatars, public read is usually fine if rules allow, but admin SDK bypasses rules.
-    // We need a public URL.
+    // Make the file public
+    console.log('Making file public...')
     await fileRef.makePublic()
+    console.log('File made public')
 
     // Construct the public URL
     // Format: https://storage.googleapis.com/BUCKET_NAME/FILE_PATH
