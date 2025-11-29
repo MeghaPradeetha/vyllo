@@ -16,6 +16,7 @@ export default function DashboardPage() {
     instagram: null,
   })
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
     async function fetchConnections() {
@@ -29,13 +30,86 @@ export default function DashboardPage() {
   }, [user])
 
   const handleConnect = (platform: Platform) => {
-    // TODO: Implement OAuth flow
-    console.log(`Connecting to ${platform}`)
+    if (platform === 'youtube') {
+      if (!user) {
+        alert('Please log in first')
+        return
+      }
+      // Redirect to YouTube OAuth with userId
+      window.location.href = `/api/auth/youtube?userId=${user.uid}`
+    } else {
+      alert(`${platform} integration coming soon!`)
+    }
   }
 
-  const handleDisconnect = (platform: Platform) => {
-    // TODO: Implement disconnect logic
-    console.log(`Disconnecting from ${platform}`)
+  const handleDisconnect = async (platform: Platform) => {
+    if (!user) return
+    
+    if (!confirm(`Are you sure you want to disconnect ${platform}?`)) {
+      return
+    }
+    
+    setLoading(true)
+    try {
+      const idToken = await user.getIdToken()
+      const response = await fetch(`/api/${platform}/disconnect`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to disconnect')
+      }
+      
+      // Update local state
+      setConnections(prev => ({ ...prev, [platform]: null }))
+      alert(`${platform} disconnected successfully`)
+      
+      // Refresh connections
+      if (user) {
+        const data = await getConnections(user.uid)
+        setConnections(data)
+      }
+    } catch (error) {
+      console.error('Error disconnecting:', error)
+      alert(`Failed to disconnect ${platform}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSync = async (platform: Platform) => {
+    if (!user) return
+    
+    setSyncing(true)
+    try {
+      const idToken = await user.getIdToken()
+      const response = await fetch(`/api/${platform}/sync`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to sync')
+      }
+      
+      alert(`Synced ${data.itemsAdded} videos from ${platform}!`)
+      
+      // Refresh connections to update lastSynced
+      const updatedConnections = await getConnections(user.uid)
+      setConnections(updatedConnections)
+    } catch (error: any) {
+      console.error('Error syncing:', error)
+      alert(error.message || `Failed to sync ${platform}`)
+    } finally {
+      setSyncing(false)
+    }
   }
 
   const stats = [
@@ -58,7 +132,10 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => window.open(`/portfolio/${userProfile?.username}`, '_blank')}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors"
+          >
             View Portfolio
           </button>
           <button className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
@@ -106,7 +183,9 @@ export default function DashboardPage() {
                 lastSynced={connections[platform]?.lastSynced}
                 onConnect={() => handleConnect(platform)}
                 onDisconnect={() => handleDisconnect(platform)}
+                onSync={platform === 'youtube' ? () => handleSync(platform) : undefined}
                 loading={loading}
+                syncing={syncing}
               />
             </motion.div>
           ))}

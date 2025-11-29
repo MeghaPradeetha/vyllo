@@ -47,22 +47,32 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 /**
  * Get user profile by username
  */
-export async function getUserProfileByUsername(username: string): Promise<UserProfile | null> {
-  // Note: This requires a Firestore index on username
-  // For now, we'll use a simple query
-  // In production, consider using a separate username -> userId mapping collection
-  const { collection, query, where, getDocs } = await import('firebase/firestore')
-  
+export async function getUserByUsername(username: string): Promise<UserProfile | null> {
   if (!db) throw new Error('Firestore not initialized')
-  const usersRef = collection(db, 'users')
-  const q = query(
-    collection(db, 'users'),
-    where('profile.public.username', '==', username)
-  )
   
-  // This is a workaround - in production, use a dedicated username index collection
-  // For now, we'll return null and handle this in the portfolio page
-  return null
+  // First, look up the userId from the username mapping
+  const { collection, query, where, getDocs } = await import('firebase/firestore')
+  const usernamesRef = collection(db, 'usernames')
+  const q = query(usernamesRef, where('username', '==', username.toLowerCase()))
+  const snapshot = await getDocs(q)
+  
+  if (snapshot.empty) {
+    return null
+  }
+  
+  const userId = snapshot.docs[0].data().userId
+  
+  // Then fetch the full profile
+  return getUserProfile(userId)
+}
+
+/**
+ * Create username mapping (call this when creating a user)
+ */
+export async function createUsernameMapping(username: string, userId: string): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
+  const usernameRef = doc(db, 'usernames', username.toLowerCase())
+  await setDoc(usernameRef, { username: username.toLowerCase(), userId })
 }
 
 /**

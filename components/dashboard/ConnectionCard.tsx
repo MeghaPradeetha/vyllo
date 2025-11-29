@@ -10,7 +10,9 @@ interface ConnectionCardProps {
   lastSynced?: Date
   onConnect: () => void
   onDisconnect: () => void
+  onSync?: () => void
   loading?: boolean
+  syncing?: boolean
 }
 
 export function ConnectionCard({
@@ -19,7 +21,9 @@ export function ConnectionCard({
   lastSynced,
   onConnect,
   onDisconnect,
+  onSync,
   loading,
+  syncing,
 }: ConnectionCardProps) {
   const platformConfig = {
     youtube: {
@@ -82,29 +86,52 @@ export function ConnectionCard({
             : "Connect to showcase your content"}
         </p>
 
-        <button
-          onClick={isConnected ? onDisconnect : onConnect}
-          disabled={loading}
-          className={`w-full py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
-            isConnected
-              ? "bg-white/5 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 border border-white/10"
-              : `bg-gradient-to-r ${config.color} text-white hover:shadow-lg hover:scale-[1.02]`
-          }`}
-        >
-          {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : isConnected ? (
-            <>
-              Disconnect
-              <XCircle className="h-5 w-5" />
-            </>
-          ) : (
-            <>
-              Connect Account
-              <ArrowRight className="h-5 w-5" />
-            </>
+        <div className="space-y-3">
+          {isConnected && onSync && (
+            <button
+              onClick={onSync}
+              disabled={syncing || loading}
+              className={`w-full py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r ${config.color} text-white hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {syncing ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Sync Now
+                </>
+              )}
+            </button>
           )}
-        </button>
+          <button
+            onClick={isConnected ? onDisconnect : onConnect}
+            disabled={loading || syncing}
+            className={`w-full py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+              isConnected
+                ? "bg-white/5 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 border border-white/10"
+                : `bg-gradient-to-r ${config.color} text-white hover:shadow-lg hover:scale-[1.02]`
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : isConnected ? (
+              <>
+                Disconnect
+                <XCircle className="h-5 w-5" />
+              </>
+            ) : (
+              <>
+                Connect Account
+                <ArrowRight className="h-5 w-5" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </motion.div>
   )

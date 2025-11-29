@@ -11,13 +11,36 @@ import {
   orderBy,
   limit,
 } from 'firebase/firestore'
-import { ContentItem } from '@/types/database'
+import { ContentItem, NormalizedContent } from '@/types/database'
 
 /**
- * Save content items to the public cache
+ * Save a single content item
+ */
+export async function saveContent(
+  userId: string,
+  content: NormalizedContent
+): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized')
+  const contentRef = collection(db, 'public', 'data', 'contentCache')
+  
+  // Generate unique ID from platform and external ID
+  const docId = `${content.platform}_${content.externalId}`
+  const docRef = doc(contentRef, docId)
+  
+  const contentItem: ContentItem = {
+    id: docId,
+    creatorId: userId,
+    ...content,
+  }
+  
+  await setDoc(docRef, contentItem, { merge: true })
+}
+
+/**
+ * Save multiple content items to the public cache
  * Uses batch write for efficiency
  */
-export async function saveContent(contentItems: ContentItem[]): Promise<void> {
+export async function saveContentBatch(contentItems: ContentItem[]): Promise<void> {
   if (!db) throw new Error('Firestore not initialized')
   const batch = writeBatch(db)
   const contentRef = collection(db, 'public', 'data', 'contentCache')

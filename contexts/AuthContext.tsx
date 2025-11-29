@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth'
 import { auth, isConfigured } from '@/lib/firebase'
 import { UserProfile } from '@/types/database'
-import { getUserProfile, createUserProfile, updateUserProfile } from '@/lib/db/users'
+import { getUserProfile, createUserProfile, updateUserProfile, createUsernameMapping } from '@/lib/db/users'
 
 interface AuthContextType {
   user: User | null
@@ -77,6 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       bio: '',
       avatar: '',
     })
+    
+    // Create username mapping for lookups
+    await createUsernameMapping(username, userCredential.user.uid)
   }
 
   const signIn = async (email: string, password: string) => {
@@ -101,6 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         bio: '',
         avatar: userCredential.user.photoURL || '',
       })
+      
+      // Create username mapping for lookups
+      await createUsernameMapping(username, userCredential.user.uid)
     } else if (userCredential.user.photoURL) {
       // Check if we should update the avatar
       // Update if:
