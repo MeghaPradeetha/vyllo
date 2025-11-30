@@ -39,6 +39,14 @@ export default function ConnectionsPage() {
       if (user) fetchConnections()
       // Clear URL params
       window.history.replaceState({}, '', '/dashboard/connections')
+    } else if (success === 'tiktok_connected') {
+      setMessage({ type: 'success', text: 'TikTok connected successfully!' })
+      if (user) fetchConnections()
+      window.history.replaceState({}, '', '/dashboard/connections')
+    } else if (success === 'instagram_connected') {
+      setMessage({ type: 'success', text: 'Instagram connected successfully!' })
+      if (user) fetchConnections()
+      window.history.replaceState({}, '', '/dashboard/connections')
     } else if (error) {
       setMessage({ type: 'error', text: `Connection failed: ${error}` })
       window.history.replaceState({}, '', '/dashboard/connections')
@@ -60,6 +68,13 @@ export default function ConnectionsPage() {
       }
       // Redirect to TikTok OAuth with userId
       window.location.href = `/api/auth/tiktok?userId=${user.uid}`
+    } else if (platform === 'instagram') {
+      if (!user) {
+        setMessage({ type: 'error', text: 'Please log in first' })
+        return
+      }
+      // Redirect to Instagram OAuth with userId
+      window.location.href = `/api/auth/instagram?userId=${user.uid}`
     } else {
       setMessage({ type: 'error', text: `${platform} integration coming soon!` })
     }
@@ -166,7 +181,7 @@ export default function ConnectionsPage() {
               lastSynced={connections[platform]?.lastSynced}
               onConnect={() => handleConnect(platform)}
               onDisconnect={() => handleDisconnect(platform)}
-              onSync={(platform === 'youtube' || platform === 'tiktok') ? () => handleSync(platform) : undefined}
+              onSync={(platform === 'youtube' || platform === 'tiktok' || platform === 'instagram') ? () => handleSync(platform) : undefined}
               loading={loading}
               syncing={syncing}
             />
