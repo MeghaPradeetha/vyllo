@@ -40,12 +40,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                <a href="/about" className="text-gray-400 hover:text-purple-400 transition-colors">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                <a href="/contact" className="text-gray-400 hover:text-purple-400 transition-colors">
                   Contact
                 </a>
               </li>
@@ -79,10 +79,10 @@ export function Footer() {
             © {new Date().getFullYear()} Vyllo. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">
+            <a href="/privacy" className="text-gray-500 hover:text-purple-400 transition-colors">
               Privacy Policy
             </a>
-            <a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">
+            <a href="/terms" className="text-gray-500 hover:text-purple-400 transition-colors">
               Terms of Service
             </a>
           </div>

@@ -37,6 +37,13 @@ export default function DashboardPage() {
       }
       // Redirect to YouTube OAuth with userId
       window.location.href = `/api/auth/youtube?userId=${user.uid}`
+    } else if (platform === 'tiktok') {
+      if (!user) {
+        alert('Please log in first')
+        return
+      }
+      // Redirect to TikTok OAuth with userId
+      window.location.href = `/api/auth/tiktok?userId=${user.uid}`
     } else {
       alert(`${platform} integration coming soon!`)
     }
@@ -183,7 +190,7 @@ export default function DashboardPage() {
                 lastSynced={connections[platform]?.lastSynced}
                 onConnect={() => handleConnect(platform)}
                 onDisconnect={() => handleDisconnect(platform)}
-                onSync={platform === 'youtube' ? () => handleSync(platform) : undefined}
+                onSync={(platform === 'youtube' || platform === 'tiktok') ? () => handleSync(platform) : undefined}
                 loading={loading}
                 syncing={syncing}
               />
