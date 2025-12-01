@@ -21,8 +21,16 @@ export async function POST(request: NextRequest) {
     try {
       const decodedToken = await adminAuth.verifyIdToken(idToken)
       userId = decodedToken.uid
-    } catch (error) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    } catch (error: any) {
+      console.error('[YouTube Sync] Token verification failed:', error)
+      // Log more details if available
+      if (error.code) console.error('[YouTube Sync] Error code:', error.code)
+      if (error.message) console.error('[YouTube Sync] Error message:', error.message)
+      
+      return NextResponse.json({ 
+        error: 'Invalid token',
+        details: error.message 
+      }, { status: 401 })
     }
     
     // Check if Firebase Admin is initialized
