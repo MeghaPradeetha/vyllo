@@ -5,6 +5,8 @@ import { UserProfile } from '@/types/database'
  * Get user profile by username (Server-side using Admin SDK)
  */
 export async function getUserByUsername(username: string): Promise<UserProfile | null> {
+  if (!adminDb) return null
+
   // Look up the userId from the username mapping
   const usernamesSnapshot = await adminDb
     .collection('usernames')
@@ -12,6 +14,10 @@ export async function getUserByUsername(username: string): Promise<UserProfile |
     .limit(1)
     .get()
   
+  if (!usernamesSnapshot) {
+    return null
+  }
+
   if (usernamesSnapshot.empty) {
     return null
   }
@@ -41,6 +47,8 @@ export async function getUserByUsername(username: string): Promise<UserProfile |
  * Get content by user (Server-side using Admin SDK)
  */
 export async function getContentByUser(userId: string) {
+  if (!adminDb) return []
+
   const contentSnapshot = await adminDb
     .collection('public')
     .doc('data')
@@ -50,7 +58,7 @@ export async function getContentByUser(userId: string) {
   
   const content: any[] = []
   
-  contentSnapshot.forEach((doc) => {
+  contentSnapshot.forEach((doc: any) => {
     const data = doc.data()
     content.push({
       ...data,
