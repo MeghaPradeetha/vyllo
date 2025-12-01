@@ -8,12 +8,16 @@ export async function GET() {
   try {
     console.log('[Test API] Testing Firestore connection...')
     
+    if (!adminDb) {
+      throw new Error('Firebase Admin not initialized')
+    }
+
     // Test 1: List usernames collection
     const usernamesSnapshot = await adminDb.collection('usernames').limit(5).get()
     console.log('[Test API] Usernames collection size:', usernamesSnapshot.size)
     
     const usernames: any[]  = []
-    usernamesSnapshot.forEach((doc) => {
+    usernamesSnapshot.forEach((doc: any) => {
       usernames.push({ id: doc.id, ...doc.data() })
     })
     
@@ -22,7 +26,7 @@ export async function GET() {
     console.log('[Test API] Users collection size:', usersSnapshot.size)
     
     const users: any[] = []
-    usersSnapshot.forEach((doc) => {
+    usersSnapshot.forEach((doc: any) => {
       users.push({ id: doc.id })
     })
     
