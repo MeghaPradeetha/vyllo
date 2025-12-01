@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revokeToken } from '@/lib/api/youtube'
-import { deleteConnection, getConnection } from '@/lib/db/connections'
-import { adminAuth } from '@/lib/firebase-admin'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
 /**
  * YouTube Disconnect Endpoint
@@ -34,21 +33,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
     
-    // Get connection to retrieve access token
-    const connection = await getConnection(userId, 'youtube')
+    // Get connection to retrieve access token using Admin SDK
+    const connectionDoc = await adminDb
+      .collection('users')
+      .doc(userId)
+      .collection('connections')
+      .doc('youtube')
+      .get()
     
     // Revoke token if it exists
-    if (connection?.accessToken) {
-      try {
-        await revokeToken(connection.accessToken)
-      } catch (error) {
-        console.error('Error revoking token:', error)
-        // Continue with deletion even if revocation fails
+    if (connectionDoc.exists) {
+      const connection = connectionDoc.data()!
+      if (connection.accessToken) {
+        try {
+          await revokeToken(connection.accessToken)
+        } catch (error) {
+          console.error('Error revoking token:', error)
+          // Continue with deletion even if revocation fails
+        }
       }
     }
     
-    // Delete connection from Firestore
-    await deleteConnection(userId, 'youtube')
+    // Delete connection from Firestore using Admin SDK
+    await adminDb
+      .collection('users')
+      .doc(userId)
+      .collection('connections')
+      .doc('youtube')
+      .delete()
     
     return NextResponse.json({ success: true })
   } catch (error) {
