@@ -17,6 +17,15 @@ export async function POST(request: NextRequest) {
     const idToken = authHeader.split('Bearer ')[1]
     let userId: string
     
+    // Check if Firebase Admin is initialized
+    if (!adminAuth || !adminDb) {
+      console.error('[TikTok Disconnect] Firebase Admin not initialized')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+    
     try {
       const decodedToken = await adminAuth.verifyIdToken(idToken)
       userId = decodedToken.uid

@@ -18,6 +18,15 @@ export async function POST(request: NextRequest) {
     const idToken = authHeader.split('Bearer ')[1]
     let userId: string
     
+    // Check if Firebase Admin is initialized
+    if (!adminAuth || !adminDb) {
+      console.error('[YouTube Sync] Firebase Admin not initialized')
+      return NextResponse.json(
+        { error: 'Server configuration error: Database not connected' },
+        { status: 500 }
+      )
+    }
+    
     try {
       const decodedToken = await adminAuth.verifyIdToken(idToken)
       userId = decodedToken.uid
@@ -33,15 +42,6 @@ export async function POST(request: NextRequest) {
       }, { status: 401 })
     }
     
-    // Check if Firebase Admin is initialized
-    if (!adminDb) {
-      console.error('Firebase Admin not initialized')
-      return NextResponse.json(
-        { error: 'Server configuration error: Database not connected' },
-        { status: 500 }
-      )
-    }
-
     // Get YouTube connection using Admin SDK
     const connectionDoc = await adminDb
       .collection('users')
