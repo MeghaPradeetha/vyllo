@@ -12,6 +12,14 @@ export async function GET(
     const { username } = await context.params
     console.log('[Portfolio API] Looking up username:', username)
     
+    if (!adminDb) {
+      console.error('[Portfolio API] Firebase Admin not initialized')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Look up userId from username
     const usernamesSnapshot = await adminDb
       .collection('usernames')
@@ -68,7 +76,7 @@ export async function GET(
     console.log('[Portfolio API] Found', contentSnapshot.size, 'content items')
     
     const content: any[] = []
-    contentSnapshot.forEach((doc) => {
+    contentSnapshot.forEach((doc: any) => {
       const data = doc.data()
       content.push({
         ...data,
