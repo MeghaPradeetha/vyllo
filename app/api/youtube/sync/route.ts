@@ -25,6 +25,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
     
+    // Check if Firebase Admin is initialized
+    if (!adminDb) {
+      console.error('Firebase Admin not initialized')
+      return NextResponse.json(
+        { error: 'Server configuration error: Database not connected' },
+        { status: 500 }
+      )
+    }
+
     // Get YouTube connection using Admin SDK
     const connectionDoc = await adminDb
       .collection('users')
