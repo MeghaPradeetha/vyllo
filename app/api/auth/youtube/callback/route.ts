@@ -55,16 +55,20 @@ export async function GET(request: NextRequest) {
     await adminDb.collection('oauth_states').doc(state).delete()
     
     // Exchange code for tokens
+    console.log('[YouTube Auth Callback] Exchanging code for tokens...')
     const tokens = await exchangeCodeForTokens(code)
+    console.log('[YouTube Auth Callback] Tokens received. Getting channel info...')
     
     // Get channel information
     const channelInfo = await getChannelInfo(tokens.access_token)
+    console.log('[YouTube Auth Callback] Channel info received:', channelInfo.id)
     
     // Calculate token expiration time
     const tokenExpiresAt = new Date()
     tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + tokens.expires_in)
     
     // Save connection to Firestore using Admin SDK
+    console.log('[YouTube Auth Callback] Saving to Firestore:', userId)
     await adminDb.collection('users').doc(userId).collection('connections').doc('youtube').set({
       platform: 'youtube',
       isConnected: true,
@@ -75,13 +79,18 @@ export async function GET(request: NextRequest) {
       expiresAt: tokenExpiresAt,
       lastSynced: new Date(),
     }, { merge: true })
+    console.log('[YouTube Auth Callback] Saved successfully')
     
     // Redirect back to connections page with success
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/connections?success=youtube_connected`
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in YouTube OAuth callback:', error)
+    // Log detailed error response if from Axios
+    if (error.response?.data) {
+      console.error('Detailed API Error:', JSON.stringify(error.response.data, null, 2))
+    }
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/connections?error=oauth_failed`
     )

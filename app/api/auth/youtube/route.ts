@@ -53,10 +53,13 @@ export async function GET(request: NextRequest) {
         state,
       }).toString()
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error initiating YouTube OAuth:', error)
+    if (error.code) console.error('Error code:', error.code)
+    if (error.details) console.error('Error details:', error.details)
+    
     return NextResponse.json(
-      { error: 'Failed to initiate OAuth flow' },
+      { error: 'Failed to initiate OAuth flow', details: error.message },
       { status: 500 }
     )
   }

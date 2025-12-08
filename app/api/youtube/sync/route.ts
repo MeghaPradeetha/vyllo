@@ -70,19 +70,45 @@ export async function POST(request: NextRequest) {
     
     // Refresh token if expired
     if (connection.expiresAt && connection.expiresAt.toDate() <= new Date() && connection.refreshToken) {
-      const tokens = await refreshAccessToken(connection.refreshToken)
-      accessToken = tokens.access_token
-      
-      // Update stored access token
-      await adminDb
-        .collection('users')
-        .doc(userId)
-        .collection('connections')
-        .doc('youtube')
-        .update({
-          accessToken: tokens.access_token,
-          expiresAt: new Date(Date.now() + tokens.expires_in * 1000),
-        })
+      try {
+        const tokens = await refreshAccessToken(connection.refreshToken)
+        accessToken = tokens.access_token
+        
+        // Update stored access token
+        await adminDb
+          .collection('users')
+          .doc(userId)
+          .collection('connections')
+          .doc('youtube')
+          .update({
+            accessToken: tokens.access_token,
+            expiresAt: new Date(Date.now() + tokens.expires_in * 1000),
+          })
+      } catch (error: any) {
+        // Handle invalid grant (revoked/expired refresh token)
+        if (error.response?.data?.error === 'invalid_grant') {
+          console.error('[YouTube Sync] Refresh token invalid, disconnecting user')
+          
+          await adminDb
+            .collection('users')
+            .doc(userId)
+            .collection('connections')
+            .doc('youtube')
+            .update({
+              isConnected: false,
+              accessToken: null,
+              refreshToken: null,
+              channelId: null,
+              updatedAt: new Date()
+            })
+            
+          return NextResponse.json(
+            { error: 'YouTube connection expired', code: 'auth_revoked' },
+            { status: 401 }
+          )
+        }
+        throw error
+      }
     }
     
     if (!accessToken || !connection.channelId) {

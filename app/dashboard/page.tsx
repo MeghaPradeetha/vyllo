@@ -114,6 +114,14 @@ export default function DashboardPage() {
     } catch (error: any) {
       console.error('Error syncing:', error)
       alert(error.message || `Failed to sync ${platform}`)
+      
+      // If authorization was revoked, refresh connections to update UI
+      if (error.message === 'YouTube connection expired' || error.message.includes('expired') || error.message.includes('revoked')) {
+        if (user) {
+          const updatedConnections = await getConnections(user.uid)
+          setConnections(updatedConnections)
+        }
+      }
     } finally {
       setSyncing(false)
     }
